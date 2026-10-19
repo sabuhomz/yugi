@@ -4,13 +4,17 @@ import 'package:provider/provider.dart';
 import '../models/card.dart';
 import '../models/deck.dart';
 import '../services/card_repository.dart';
+import '../services/deck_checker.dart';
 import '../services/deck_store.dart';
+import '../services/limit_store.dart';
 import '../theme/duel_theme.dart';
 import '../widgets/card_badges.dart';
 import '../widgets/card_image.dart';
+import '../widgets/deck_check_sheet.dart';
 import '../widgets/dialogs.dart';
 import 'card_detail_screen.dart';
 import 'cards_screen.dart';
+import 'draw_sim_screen.dart';
 
 /// หน้าจัดเด็ค: Main 20–30 ใบ + Extra สูงสุด 9 ใบ
 class DeckEditorScreen extends StatelessWidget {
@@ -26,6 +30,8 @@ class DeckEditorScreen extends StatelessWidget {
       return const Scaffold(body: Center(child: Text('ไม่พบเด็คนี้')));
     }
 
+    final limits = context.watch<LimitStore>();
+    final errs = errorCount(checkDeck(deck, repo.byId, limits));
     final mainOk = deck.main.length >= mainMin;
 
     return Scaffold(
@@ -107,6 +113,39 @@ class DeckEditorScreen extends StatelessWidget {
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
                   children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: DuelButton(
+                              label: errs > 0 ? 'ตรวจเด็ค ($errs)' : 'ตรวจเด็ค',
+                              icon: errs > 0
+                                  ? Icons.error_outline
+                                  : Icons.fact_check,
+                              danger: errs > 0,
+                              dense: true,
+                              onTap: () => showDeckCheckSheet(context, deck.id),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: DuelButton(
+                              label: 'จำลองการจั่ว',
+                              icon: Icons.casino,
+                              dense: true,
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      DrawSimScreen(deckId: deck.id),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                     _label('Main Deck  ($mainMin–$mainMax)', DL.cyan),
                     _grid(context, repo, deck, extra: false),
                     const SizedBox(height: 14),
@@ -246,7 +285,7 @@ class DeckEditorScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (_) => CardDetailScreen(card: c)),
+                            builder: (_) => CardDetailScreen(cards: [c])),
                       );
                     },
                   ),

@@ -6,6 +6,7 @@ import '../models/card_filter.dart';
 import '../models/deck.dart';
 import '../services/card_repository.dart';
 import '../services/deck_store.dart';
+import '../services/limit_store.dart';
 import '../theme/duel_theme.dart';
 import '../widgets/card_image.dart';
 import '../widgets/filter_sheet.dart';
@@ -51,7 +52,8 @@ class _CardsScreenState extends State<CardsScreen> {
 
   void _quickAdd(Deck deck, YgoCard c) {
     final store = context.read<DeckStore>();
-    final r = store.add(deck, c);
+    final max = context.read<LimitStore>().maxFor(c.id);
+    final r = store.add(deck, c, max: max);
     showToast(context, addMessage(r, c));
   }
 
@@ -135,7 +137,7 @@ class _CardsScreenState extends State<CardsScreen> {
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                        'พบ ${list.length} ใบ  ·  DL ${repo.dlCount}',
+                        'พบ ${list.length} ใบ  ·  DL ${repo.dlCount} / SD ${repo.sdCount}',
                         style: const TextStyle(color: DL.muted, fontSize: 12)),
                   ),
                 ),
@@ -207,7 +209,8 @@ class _CardsScreenState extends State<CardsScreen> {
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => CardDetailScreen(card: c, deckId: widget.deckId),
+              builder: (_) => CardDetailScreen(
+                  cards: list, index: i, deckId: widget.deckId),
             ),
           ),
           onAdd: deck == null ? null : () => _quickAdd(deck, c),

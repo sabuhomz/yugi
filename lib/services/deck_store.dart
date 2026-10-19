@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/card.dart';
 import '../models/deck.dart';
 
-enum AddResult { ok, mainFull, extraFull, tooManyCopies }
+enum AddResult { ok, mainFull, extraFull, tooManyCopies, overLimit }
 
 const mainMin = 20;
 const mainMax = 30;
@@ -23,6 +23,8 @@ String addMessage(AddResult r, YgoCard c) {
       return 'เอ็กซ์ตร้าเด็คเต็มแล้ว ($extraMax ใบ)';
     case AddResult.tooManyCopies:
       return 'ใส่การ์ดชื่อเดียวกันได้ไม่เกิน $copyMax ใบ';
+    case AddResult.overLimit:
+      return 'การ์ดนี้ถูกตั้งข้อจำกัดไว้ (ปรับได้ที่หน้ารายละเอียดการ์ด)';
   }
 }
 
@@ -104,8 +106,11 @@ class DeckStore extends ChangeNotifier {
     _changed(d);
   }
 
-  AddResult add(Deck d, YgoCard c) {
-    if (d.count(c.id) >= copyMax) return AddResult.tooManyCopies;
+  /// [max] คือจำนวนใบสูงสุดของการ์ดใบนี้ (ค่าที่ผู้ใช้ตั้งเองจาก LimitStore)
+  AddResult add(Deck d, YgoCard c, {int max = copyMax}) {
+    if (d.count(c.id) >= max) {
+      return max < copyMax ? AddResult.overLimit : AddResult.tooManyCopies;
+    }
     if (c.isExtra) {
       if (d.extra.length >= extraMax) return AddResult.extraFull;
       d.extra.add(c.id);

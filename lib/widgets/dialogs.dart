@@ -8,6 +8,7 @@ Future<String?> promptText(
   String initial = '',
   String hint = '',
   String okLabel = 'ตกลง',
+  int maxLength = 30,
 }) {
   final ctrl = TextEditingController(text: initial);
   return showDialog<String>(
@@ -19,7 +20,7 @@ Future<String?> promptText(
       content: TextField(
         controller: ctrl,
         autofocus: true,
-        maxLength: 30,
+        maxLength: maxLength,
         decoration: InputDecoration(
           hintText: hint,
           enabledBorder:
