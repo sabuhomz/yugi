@@ -141,7 +141,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       child: const Icon(Icons.style, size: 38),
                     ),
                     const SizedBox(height: 12),
-                    const Text('Speed Duel Cards',
+                    const Text('Duel-Links Cards',
                         style: TextStyle(
                             fontSize: 24, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 4),
